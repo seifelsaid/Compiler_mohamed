@@ -1,27 +1,31 @@
 import re
 
-keywords = {"int", "if", "return", "char", "double", "while"}
+# Define token types
+keywords = {"int", "if", "return","for", "char", "double", "while","void","float"}
 operators = r"[+\-*/=<>!]+"
 punctuation = r"[;,\(\)\{\}]"
 identifier = r"[a-zA-Z_]\w*"
 numeric_constant = r"\b\d+(\.\d+)?\b"
-character_constant = r"'(\\.|[^\\'])'"  
+character_constant = r"'(\\.|[^\\'])'"
 whitespace = r"[ \t]+"
 newline = r"\n"
+single_line_comment = r"//[^\n]*"
+multi_line_comment = r"/\[\s\S]?\*/"
 
-code = """int x = 10;  
-char ch = 'A';
-if (x > 0) x = x + 1;
-double y = 3.14;
-while (x < 100) x++;"""
+# Request code input from the user
+code = input("Enter the C code you want to scan:\n")
 
 tokens = []
 
 position = 0
 while position < len(code):
     match = None
-
-    if match := re.match(identifier, code[position:]):
+    if match := re.match(single_line_comment, code[position:]):
+        tokens.append(('SINGLE_LINE_COMMENT', match.group()))
+        
+    elif match := re.match(multi_line_comment, code[position:]):
+        tokens.append(('MULTI_LINE_COMMENT', match.group()))
+    elif match := re.match(identifier, code[position:]):
         text = match.group()
         if text in keywords:
             tokens.append(('KEYWORD', text))
@@ -44,12 +48,13 @@ while position < len(code):
         tokens.append(('NEWLINE', '\\n'))
 
     elif match := re.match(whitespace, code[position:]):
-        tokens.append(('WHITESPACE', match.group()))
+        tokens.append(('WHITESPACE', match.group()))     
 
     if match:
         position += len(match.group())
     else:
         position += 1
 
+# Print the tokens
 for token in tokens:
     print(token)
